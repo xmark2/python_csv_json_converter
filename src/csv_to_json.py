@@ -1,6 +1,6 @@
 import csv
-import codecs
 import json
+import codecs
 
 def convert_to_json(input_filename, output_filename):
     """ reads csv from input_file and outputs json to output_file """
