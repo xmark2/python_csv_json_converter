@@ -2,41 +2,42 @@ import csv
 import codecs
 import json
 
-def convert_to_json(input_file_name, out_file_name):
-    with codecs.open(input_file_name, encoding="utf8") as csvfile:
-        readCSV = csv.reader(csvfile, delimiter=',')
-        header = []
-        rows = []
+def convert_to_json(input_filename, output_filename):
+    """ reads csv from input_file and outputs json to output_file """
 
+    with codecs.open(input_filename, encoding="utf8") as csvfile:
+        readCSV = csv.reader(csvfile, delimiter=',')
+
+        rows = []
         try:
             for row in readCSV:
                 rows.append(row)
         except UnicodeDecodeError:
             pass        
+        except UnicodeEncodeError:
+            pass        
 
-        header = rows[0]
-
-        rows.remove(header)
+        headers = rows[0]
+        rows = rows[1:]
         rows.sort()
 
+
     data_dic = []
-
-    maxRows = len(rows)
-    maxHeader = len(header)
-
-    for i in range(0,maxRows):
-
+    for i, row in enumerate(rows):
         my_dict = {'id':i}
-        for j in range(0,maxHeader):
-            my_dict[header[j]] = rows[i][j]
+        for j, header in enumerate(headers):
+            my_dict[header] = row[j]
         data_dic.append(my_dict)
 
-    out_file = open(out_file_name,"w")
-    json.dump(data_dic,out_file, indent=4)
+
+    out_file = open(output_filename,"w")
+    json.dump(data_dic, out_file, indent=4)
     out_file.close()
 
-# input_file_name = 'language_codes.csv'
-input_file_name = raw_input('What is the name of your csv file?\n')
-out_file_name = 'csv_output.json'
 
-convert_to_json(input_file_name, out_file_name)
+
+if __name__ == "__main__":
+    input_filename = raw_input('What is the name of your csv file?\n')
+    output_filename = input_filename[:-4] + ".json" if input_filename.endswith('.csv') else input_filename + ".json"
+
+    convert_to_json(input_filename, output_filename)
