@@ -1,6 +1,8 @@
+import os
 import csv
 import json
-from io import StringIO
+import codecs
+import StringIO
 
 
 def get_json_from_csv(csv_data, delimiter=','):
@@ -14,28 +16,34 @@ def get_json_from_csv(csv_data, delimiter=','):
                         delimited with anyting other than a comma
     Output: json
     """
-    
-    csv.register_dialect('dialect', delimiter=delimiter)
 
-    with StringIO(csv_data) as csvfile:
+    # temporarily write csv to a file
+    f = open('csvfile', 'w')
+    f.write(csv_data)
+    f.close()
+    f = open('csvfile')
+
+    # parse csv
+    with f as csvfile:
+        csv.register_dialect('dialect', delimiter=delimiter)
         readCSV = csv.reader(csvfile, dialect='dialect')
-        rows   = []
-        try:
-            for row in readCSV:
-                rows.append(row)
-        except UnicodeDecodeError:
-            pass
-        except UnicodeEncodeError:
-            pass
-        headers = rows[0]
-        rows    = rows[1:]
 
-    json_data = []
-    for row in rows:
-        d = dict()
-        for i, header in enumerate(headers):
-            d[header] = row[i]
-        json_data.append(d)
+        try:
+            json_data = []
+            rows = []
+            headers = next(readCSV)
+            for row in readCSV:
+                d = dict()
+                for i, header in enumerate(headers):
+                    d[header] = row[i]
+                json_data.append(d)
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            print >> sys.stderr, "Format Error"
+            pass
+
+    # destroy temporary file
+    f.close()
+    os.remove(os.getcwd() + '/csvfile')
+
 
     return json_data
-
